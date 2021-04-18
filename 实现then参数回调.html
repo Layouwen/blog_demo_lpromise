@@ -8,42 +8,42 @@
   </head>
   <body>
     <script>
-class LPromise {
-  constructor(callbackFn) {
-    this['[[PromiseState]]'] = 'pending'
-    this['[[PromiseResult]]'] = undefined
-    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
-  }
-  #resolve(res) {
-    this['[[PromiseState]]'] = 'fulfilled'
-    this['[[PromiseResult]]'] = res
-    /* new content start */
-    const run = () => this.cbResolve()
-    const ob = new MutationObserver(run)
-    ob.observe(document.body, { attributes: true })
-    document.body.setAttribute('lpromise', 'layouwen')
-    /* new content end */
-  }
-  #reject(err) {
-    this['[[PromiseState]]'] = 'reject'
-    this['[[PromiseResult]]'] = err
-    /* new content start */
-    const run = () => this.cbReject()
-    const ob = new MutationObserver(run)
-    ob.observe(document.body, { attributes: true })
-    document.body.setAttribute('lpromise', 'layouwen')
-    /* new content end */
-  }
-  then(onResolve, onReject) {
-    this.cbResolve = onResolve
-    this.cbReject = onReject
-  }
-}
-const l1 = new LPromise((resolve, reject) => resolve())
-l1.then(
-  res => console.log('res'),
-  err => console.log('err')
-)
+      class LPromise {
+        constructor(callbackFn) {
+          this['[[PromiseState]]'] = 'pending'
+          this['[[PromiseResult]]'] = undefined
+          callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+        }
+        #resolve(res) {
+          this['[[PromiseState]]'] = 'fulfilled'
+          this['[[PromiseResult]]'] = res
+          /* new content start */
+          const run = () => this.cbResolve()
+          const ob = new MutationObserver(run)
+          ob.observe(document.body, { attributes: true })
+          document.body.setAttribute('lpromise', 'layouwen')
+          /* new content end */
+        }
+        #reject(err) {
+          this['[[PromiseState]]'] = 'reject'
+          this['[[PromiseResult]]'] = err
+          /* new content start */
+          const run = () => this.cbReject()
+          const ob = new MutationObserver(run)
+          ob.observe(document.body, { attributes: true })
+          document.body.setAttribute('lpromise', 'layouwen')
+          /* new content end */
+        }
+        then(onResolve, onReject) {
+          this.cbResolve = onResolve
+          this.cbReject = onReject
+        }
+      }
+      const l1 = new LPromise((resolve, reject) => resolve())
+      l1.then(
+        res => console.log('res'),
+        err => console.log('err')
+      )
     </script>
   </body>
 </html>
