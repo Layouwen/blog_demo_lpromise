@@ -664,3 +664,122 @@ LPromise.race([p1, p2, p3]).then(
   err => console.log('err', err)
 )
 ```
+
+## 9、实现 all 方法
+
+**all** 方法当所有 **Promise** 都成功时返回所有结果的数组，否则返回第一个失败的结果。我们只需要遍历该 **Promise** 数组。定义个变量存放当前 **res** 的长度。如果长度等于数组的长度，我们就 **resolve** 出去。否则发现第一个失败的时候，直接 **reject**。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        cbFn && cbFn(res)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        cbFn && cbFn(err)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    return new LPromise((resolve, reject) => {
+      const cbResolve = res => {
+        const resolveRes = onResolve && onResolve(res)
+        if (resolveRes instanceof LPromise) {
+          resolveRes.then(resolve)
+        } else {
+          resolve(res)
+        }
+      }
+      this.cbResolveQueue.push(cbResolve)
+      const cbReject = err => {
+        onReject && onReject(err)
+        reject(err)
+      }
+      this.cbRejectQueue.push(cbReject)
+    })
+  }
+  catch(err) {
+    this.then(undefined, err)
+  }
+  finally(callback) {
+    this.then(callback, callback)
+  }
+  static resolve(res) {
+    return new LPromise(resolve => resolve(res))
+  }
+  static reject(err) {
+    return new LPromise((undefined, reject) => reject(err))
+  }
+  static race(promiseArr) {
+    return new LPromise((resolve, reject) => {
+      let isContinue = true
+      promiseArr.forEach(promise => {
+        promise.then(
+          res => {
+            if (isContinue) {
+              isContinue = false
+              resolve(res)
+            }
+          },
+          err => {
+            if (isContinue) {
+              isContinue = false
+              reject(err)
+            }
+          }
+        )
+      })
+    })
+  }
+  /* new content start */
+  static all(promiseArr) {
+    return new LPromise((resolve, reject) => {
+      const resArr = []
+      const length = promiseArr.length
+      promiseArr.forEach(p => {
+        p.then(
+          res => {
+            resArr.push(res)
+            if (resArr.length === length) {
+              resolve(resArr)
+            }
+          },
+          err => reject(err)
+        )
+      })
+    })
+  }
+  /* new content end */
+}
+const p1 = new LPromise((resolve, reject) => setTimeout(() => resolve(1), 200))
+const p2 = new LPromise((resolve, reject) => setTimeout(() => reject(2), 1000))
+const p3 = new LPromise((resolve, reject) => setTimeout(() => reject(3), 3000))
+LPromise.all([p1, p2, p3]).then(
+  res => console.log('res', res),
+  err => console.log('err', err)
+)
+```
