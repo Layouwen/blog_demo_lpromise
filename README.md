@@ -8,6 +8,8 @@
 
 ## 2、三种状态
 
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E4%B8%89%E7%A7%8D%E7%8A%B6%E6%80%81.html)
+
 Promise 它一共会有三种状态：
 
 1. pending
@@ -44,6 +46,8 @@ console.log(l2) // rejected 状态
 ```
 
 ## 3、实现 then 参数回调
+
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E5%AE%9E%E7%8E%B0then%E5%8F%82%E6%95%B0%E5%9B%9E%E8%B0%83.html)
 
 返回的 **Promise** ，可以通过使用 **then** 传递成功和失败的回调。
 
@@ -192,6 +196,8 @@ l1.then(
 ```
 
 ## 4、链式调用
+
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E9%93%BE%E5%BC%8F%E8%B0%83%E7%94%A8.html)
 
 在原本的 **Promise** 中。我们是可以使用 **then** 链式调用。意味着每个 **then** 都返回一个新的 **Promise**。
 
@@ -351,6 +357,8 @@ l1.then(
 
 ## 5、实现 catch 方法
 
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E5%AE%9E%E7%8E%B0catch%E6%96%B9%E6%B3%95.html)
+
 在调用 `catch` 的时候自动在回调队列中添加一个错误回调函数。
 
 ```js
@@ -417,6 +425,8 @@ p1.then(res => console.log(res)).catch(err => console.log(err))
 ```
 
 ## 6、resolve 和 reject 静态方法
+
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/Resolve%E5%92%8CReject%E9%9D%99%E6%80%81%E6%96%B9%E6%B3%95.html)
 
 这两个静态方法比较简单。只需要返回一个固定状态的 **Promise** 即可。
 
@@ -489,6 +499,8 @@ console.log(p2)
 ```
 
 ## 7、实现 finally 方法
+
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E5%AE%9E%E7%8E%B0finally%E6%96%B9%E6%B3%95.html)
 
 这个与 catch 类似的实现，只需要保证不管成功还是失败都执行里面的回调。
 
@@ -568,6 +580,8 @@ p1.then(
 ```
 
 ## 8、实现 race 方法
+
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E5%AE%9E%E7%8E%B0race%E6%96%B9%E6%B3%95.html)
 
 **race** 就是返回最先执行成功的结果。不管是成功还是失败。这样我们只需要遍历该 **Promise** ，正常返回数据。谁先执行完成，谁先返回即可。注意要控制状态，防止返回多个结果。 **race** 只需要返回最快的一个结果。
 
@@ -670,6 +684,8 @@ LPromise.race([p1, p2, p3]).then(
 ```
 
 ## 9、实现 all 方法
+
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E5%AE%9E%E7%8E%B0all%E6%96%B9%E6%B3%95.html)
 
 **all** 方法当所有 **Promise** 都成功时返回所有结果的数组，否则返回第一个失败的结果。我们只需要遍历该 **Promise** 数组。定义个变量存放当前 **res** 的长度。如果长度等于数组的长度，我们就 **resolve** 出去。否则发现第一个失败的时候，直接 **reject**。
 
@@ -789,6 +805,8 @@ LPromise.all([p1, p2, p3]).then(
 ```
 
 ## 10、实现 allSettled 方法
+
+[此处代码，点击这里](https://github.com/Layouwen/blog_demo_lpromise/blob/master/%E5%AE%9E%E7%8E%B0allSettled%E6%96%B9%E6%B3%95.html)
 
 该方法与 **all** 类似。只是这个方法不管成功或失败，只要该 **Promise** 数组执行完毕。就会返回所有结果。我们只需要判断执行过的 **Promise** 长度是否等于数组长度。当一致时就直接 **resolve**。并且每次执行的时候，将返回值以指定格式的对象保存到返回的 **res** 中。
 
@@ -934,8 +952,9 @@ LPromise.allSettled([p1, p2, p3]).then(
 
 ## End
 
-本文章实现的Promise不够完善，只是大概把实现原理带大家过一遍。Promise的源码不是由js写的，所以我们只能尽可能使用js模仿。欢淫各位大佬补充更完善的版本。
+本文章实现的 Promise 不够完善，只是大概把实现原理带大家过一遍。Promise 的源码不是由 js 写的，所以我们只能尽可能使用 js 模仿。欢淫各位大佬补充更完善的版本。
 
 交流学习~
-> 微信：gdgzyw    
+
+> 微信：gdgzyw  
 > github: [www.github.com/layouwen](www.github.com/layouwen)
