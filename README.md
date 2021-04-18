@@ -2,6 +2,10 @@
 
 本篇文章，默认你已经知道什么是 **Promise** ，然后我会带你一步步的实现一个简易的 Promise。将会以循序渐进的方式，分步骤实现。
 
+本文章相关代码地址：[https://github.com/layouwen/blog_demo_lpromise](https://github.com/layouwen/blog_demo_lpromise)
+
+如果本文章对你有所帮助，请不要吝啬你的 **Start** 哦~
+
 ## 2、三种状态
 
 Promise 它一共会有三种状态：
@@ -927,3 +931,11 @@ LPromise.allSettled([p1, p2, p3]).then(
   err => console.log('err', err)
 )
 ```
+
+## End
+
+本文章实现的Promise不够完善，只是大概把实现原理带大家过一遍。Promise的源码不是由js写的，所以我们只能尽可能使用js模仿。欢淫各位大佬补充更完善的版本。
+
+交流学习~
+> 微信：gdgzyw    
+> github: [www.github.com/layouwen](www.github.com/layouwen)
