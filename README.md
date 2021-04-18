@@ -43,7 +43,7 @@ console.log(l2) // rejected 状态
 
 返回的 **Promise** ，可以通过使用 **then** 传递成功和失败的回调。
 
-##### 通过 then 接收了两个回调。实现了分别调用回调的内容。但是发现，他们两个都会执行。
+通过 then 接收了两个回调。实现了分别调用回调的内容。但是发现，他们两个都会执行。
 
 ```js
 class LPromise {
@@ -74,7 +74,7 @@ l1.then(
 )
 ```
 
-##### 对执行时机进行调整。使其在调用 resolve 或 reject 才执行相关的回调
+对执行时机进行调整。使其在调用 resolve 或 reject 才执行相关的回调
 
 ```js
 class LPromise {
@@ -111,7 +111,7 @@ l1.then(
 )
 ```
 
-##### 改装后，发现 resolve 和 reject 的执行时间比 then 的回调要快。导致无法执行 then 中的回调。我们需要对 resolve 和 reject 中执行回调的部分进行 **延迟执行**。可以使用 setTimeout 进行延迟
+改装后，发现 resolve 和 reject 的执行时间比 then 的回调要快。导致无法执行 then 中的回调。我们需要对 resolve 和 reject 中执行回调的部分进行 **延迟执行**。可以使用 setTimeout 进行延迟
 
 ```js
 class LPromise {
@@ -146,7 +146,7 @@ l1.then(
 )
 ```
 
-##### 考虑到 微任务 和 宏任务。我们可以使用 MutationObserver 替代 setTimeout
+考虑到 微任务 和 宏任务。我们可以使用 MutationObserver 替代 setTimeout
 
 ```js
 class LPromise {
