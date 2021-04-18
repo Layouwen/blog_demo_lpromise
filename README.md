@@ -344,3 +344,142 @@ l1.then(
 ```
 
 到现在我们已经实现了 **then** 的链式调用
+
+## 5、实现 catch 方法
+
+在调用 `catch` 的时候自动在回调队列中添加一个错误回调函数。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        cbFn && cbFn(res)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        cbFn && cbFn(err)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    return new LPromise((resolve, reject) => {
+      const cbResolve = res => {
+        const resolveRes = onResolve && onResolve(res)
+        if (resolveRes instanceof LPromise) {
+          resolveRes.then(resolve)
+        } else {
+          resolve(res)
+        }
+      }
+      this.cbResolveQueue.push(cbResolve)
+      const cbReject = err => {
+        onReject && onReject(err)
+        reject(err)
+      }
+      this.cbRejectQueue.push(cbReject)
+    })
+  }
+  /* new content start */
+  catch(err) {
+    this.then(undefined, err)
+  }
+  /* new content end */
+}
+const p1 = new LPromise((resolve, reject) => reject('我是p1的错误信息'))
+p1.then(res => console.log(res)).catch(err => console.log(err))
+```
+
+## 6、resolve 和 reject 静态方法
+
+这两个静态方法比较简单。只需要返回一个固定状态的 **Promise** 即可。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        cbFn && cbFn(res)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        cbFn && cbFn(err)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    return new LPromise((resolve, reject) => {
+      const cbResolve = res => {
+        const resolveRes = onResolve && onResolve(res)
+        if (resolveRes instanceof LPromise) {
+          resolveRes.then(resolve)
+        } else {
+          resolve(res)
+        }
+      }
+      this.cbResolveQueue.push(cbResolve)
+      const cbReject = err => {
+        onReject && onReject(err)
+        reject(err)
+      }
+      this.cbRejectQueue.push(cbReject)
+    })
+  }
+  /* new content start */
+  static resolve(res) {
+    return new Promise(resolve => resolve(res))
+  }
+  static reject(err) {
+    return new Promise((undefined, reject) => reject(err))
+  }
+  /* new content end */
+}
+const p1 = LPromise.resolve('成功')
+console.log(p1)
+const p2 = LPromise.reject('失败')
+console.log(p2)
+```
