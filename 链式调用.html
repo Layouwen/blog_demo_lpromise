@@ -8,83 +8,83 @@
   </head>
   <body>
     <script>
-class LPromise {
-  constructor(callbackFn) {
-    this['[[PromiseState]]'] = 'pending'
-    this['[[PromiseResult]]'] = undefined
-    this.cbResolveQueue = []
-    this.cbRejectQueue = []
-    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
-  }
-  #resolve(res) {
-    this['[[PromiseState]]'] = 'fulfilled'
-    this['[[PromiseResult]]'] = res
-    const run = () => {
-      let cbFn
-      while ((cbFn = this.cbResolveQueue.shift())) {
-        /* new content start */
-        cbFn && cbFn(res)
-        /* new content end */
-      }
-    }
-    const ob = new MutationObserver(run)
-    ob.observe(document.body, { attributes: true })
-    document.body.setAttribute('lpromise', 'layouwen')
-  }
-  #reject(err) {
-    this['[[PromiseState]]'] = 'reject'
-    this['[[PromiseResult]]'] = err
-    const run = () => {
-      let cbFn
-      while ((cbFn = this.cbRejectQueue.shift())) {
-        /* new content start */
-        cbFn && cbFn(err)
-        /* new content end */
-      }
-    }
-    const ob = new MutationObserver(run)
-    ob.observe(document.body, { attributes: true })
-    document.body.setAttribute('lpromise', 'layouwen')
-  }
-  then(onResolve, onReject) {
-    return new LPromise((resolve, reject) => {
-      /* new content start */
-      const cbResolve = res => {
-        const resolveRes = onResolve && onResolve(res)
-        if (resolveRes instanceof LPromise) {
-          resolveRes.then(resolve)
-        } else {
-          resolve(res)
+      class LPromise {
+        constructor(callbackFn) {
+          this['[[PromiseState]]'] = 'pending'
+          this['[[PromiseResult]]'] = undefined
+          this.cbResolveQueue = []
+          this.cbRejectQueue = []
+          callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+        }
+        #resolve(res) {
+          this['[[PromiseState]]'] = 'fulfilled'
+          this['[[PromiseResult]]'] = res
+          const run = () => {
+            let cbFn
+            while ((cbFn = this.cbResolveQueue.shift())) {
+              /* new content start */
+              cbFn && cbFn(res)
+              /* new content end */
+            }
+          }
+          const ob = new MutationObserver(run)
+          ob.observe(document.body, { attributes: true })
+          document.body.setAttribute('lpromise', 'layouwen')
+        }
+        #reject(err) {
+          this['[[PromiseState]]'] = 'reject'
+          this['[[PromiseResult]]'] = err
+          const run = () => {
+            let cbFn
+            while ((cbFn = this.cbRejectQueue.shift())) {
+              /* new content start */
+              cbFn && cbFn(err)
+              /* new content end */
+            }
+          }
+          const ob = new MutationObserver(run)
+          ob.observe(document.body, { attributes: true })
+          document.body.setAttribute('lpromise', 'layouwen')
+        }
+        then(onResolve, onReject) {
+          return new LPromise((resolve, reject) => {
+            /* new content start */
+            const cbResolve = res => {
+              const resolveRes = onResolve && onResolve(res)
+              if (resolveRes instanceof LPromise) {
+                resolveRes.then(resolve)
+              } else {
+                resolve(res)
+              }
+            }
+            /* new content end */
+            this.cbResolveQueue.push(cbResolve)
+            /* new content start */
+            const cbReject = err => {
+              onReject && onReject(err)
+              reject(err)
+            }
+            /* new content end */
+            this.cbRejectQueue.push(cbReject)
+          })
         }
       }
-      /* new content end */
-      this.cbResolveQueue.push(cbResolve)
-      /* new content start */
-      const cbReject = err => {
-        onReject && onReject(err)
-        reject(err)
-      }
-      /* new content end */
-      this.cbRejectQueue.push(cbReject)
-    })
-  }
-}
-const l1 = new LPromise((resolve, reject) => resolve('我是传入的 resolve 数据'))
-l1.then(
-  res => {
-    console.log('第一个then的res', res)
-    return new LPromise((resolve, reject) => resolve('返回的Promise'))
-  },
-  err => console.log('第一个then的err', err)
-)
-  .then(
-    res => console.log('第二个then的res', res),
-    err => console.log('第二个then的err', err)
-  )
-  .then(
-    res => console.log('第三个then的res', res),
-    err => console.log('第三个then的err', err)
-  )
+      const l1 = new LPromise((resolve, reject) => resolve('我是传入的 resolve 数据'))
+      l1.then(
+        res => {
+          console.log('第一个then的res', res)
+          return new LPromise((resolve, reject) => resolve('返回的Promise'))
+        },
+        err => console.log('第一个then的err', err)
+      )
+        .then(
+          res => console.log('第二个then的res', res),
+          err => console.log('第二个then的err', err)
+        )
+        .then(
+          res => console.log('第三个then的res', res),
+          err => console.log('第三个then的err', err)
+        )
     </script>
   </body>
 </html>
