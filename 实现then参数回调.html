@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>实现then参数回调</title>
+  </head>
+  <body>
+    <script>
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    /* new content start */
+    const run = () => this.cbResolve()
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+    /* new content end */
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    /* new content start */
+    const run = () => this.cbReject()
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+    /* new content end */
+  }
+  then(onResolve, onReject) {
+    this.cbResolve = onResolve
+    this.cbReject = onReject
+  }
+}
+const l1 = new LPromise((resolve, reject) => resolve())
+l1.then(
+  res => console.log('res'),
+  err => console.log('err')
+)
+    </script>
+  </body>
+</html>
