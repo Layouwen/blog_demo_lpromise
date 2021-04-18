@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>三种状态</title>
+  </head>
+  <body>
+    <script>
+      class LPromise {
+        constructor(callbackFn) {
+          this['[[PromiseState]]'] = 'pending'
+          this['[[PromiseResult]]'] = undefined
+          callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+        }
+        #resolve(res) {
+          this['[[PromiseState]]'] = 'fulfilled'
+          this['[[PromiseResult]]'] = res
+        }
+        #reject(err) {
+          this['[[PromiseState]]'] = 'reject'
+          this['[[PromiseResult]]'] = err
+        }
+      }
+      console.log(new LPromise((resolve, reject) => console.log('pending'))) // pending 状态
+      const l1 = new LPromise((resolve, reject) => {
+        resolve('我调用了resolve')
+      })
+      console.log(l1) // fulfilled 状态
+      const l2 = new LPromise((resolve, reject) => {
+        reject('我调用了reject')
+      })
+      console.log(l2) // rejected 状态
+    </script>
+  </body>
+</html>
