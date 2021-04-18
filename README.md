@@ -186,3 +186,161 @@ l1.then(
   err => console.log('err')
 )
 ```
+
+## 4、链式调用
+
+在原本的 **Promise** 中。我们是可以使用 **then** 链式调用。意味着每个 **then** 都返回一个新的 **Promise**。
+
+因为支持链式。所以我们之前的 `cbResolve` 和 `cbReject` 就不能单单保存一个回调。要改回一个数组，将每一个 **then** 中的回调。都保存到回调队列中。等待调用 **resolve** 或者 **reject** 后才执行所有回调函数。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    /* new content start */
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    /* new content end */
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    /* new content start */
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        cbFn && cbFn()
+      }
+    }
+    /* new content end */
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    /* new content start */
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        cbFn && cbFn()
+      }
+    }
+    /* new content end */
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    /* new content start */
+    return new LPromise((resolve, reject) => {
+      const cbResolve = () => {
+        onResolve && onResolve()
+        resolve()
+      }
+      this.cbResolveQueue.push(cbResolve)
+      const cbReject = () => {
+        onReject && onReject()
+        reject()
+      }
+      this.cbRejectQueue.push(cbReject)
+    })
+    /* new content end */
+  }
+}
+const l1 = new LPromise((resolve, reject) => resolve())
+l1.then(
+  res => console.log('res'),
+  err => console.log('err')
+).then(
+  res => console.log('res'),
+  err => console.log('err')
+)
+```
+
+此时我们已经完成了链式调用，但是我们会发现，此时如果返回一个新的 **Promise** ，却无法获取 **Promise** 的结果。所以我们得加一些判断条件。我们也会发现，此时此刻我们无法接收到 **res** 或 **err** 的参数。所以我们也要完善一下参数传递问题。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        /* new content start */
+        cbFn && cbFn(res)
+        /* new content end */
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        /* new content start */
+        cbFn && cbFn(err)
+        /* new content end */
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    return new LPromise((resolve, reject) => {
+      /* new content start */
+      const cbResolve = res => {
+        const resolveRes = onResolve && onResolve(res)
+        if (resolveRes instanceof LPromise) {
+          resolveRes.then(resolve)
+        } else {
+          resolve(res)
+        }
+      }
+      /* new content end */
+      this.cbResolveQueue.push(cbResolve)
+      /* new content start */
+      const cbReject = err => {
+        onReject && onReject(err)
+        reject(err)
+      }
+      /* new content end */
+      this.cbRejectQueue.push(cbReject)
+    })
+  }
+}
+const l1 = new LPromise((resolve, reject) => resolve('我是传入的 resolve 数据'))
+l1.then(
+  res => {
+    console.log('第一个then的res', res)
+    return new LPromise((resolve, reject) => resolve('返回的Promise'))
+  },
+  err => console.log('第一个then的err', err)
+)
+  .then(
+    res => console.log('第二个then的res', res),
+    err => console.log('第二个then的err', err)
+  )
+  .then(
+    res => console.log('第三个then的res', res),
+    err => console.log('第三个then的err', err)
+  )
+```
+
+到现在我们已经实现了 **then** 的链式调用
