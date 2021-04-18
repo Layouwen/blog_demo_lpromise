@@ -783,3 +783,148 @@ LPromise.all([p1, p2, p3]).then(
   err => console.log('err', err)
 )
 ```
+
+## 10、实现 allSettled 方法
+
+该方法与 **all** 类似。只是这个方法不管成功或失败，只要该 **Promise** 数组执行完毕。就会返回所有结果。我们只需要判断执行过的 **Promise** 长度是否等于数组长度。当一致时就直接 **resolve**。并且每次执行的时候，将返回值以指定格式的对象保存到返回的 **res** 中。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        cbFn && cbFn(res)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        cbFn && cbFn(err)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    return new LPromise((resolve, reject) => {
+      const cbResolve = res => {
+        const resolveRes = onResolve && onResolve(res)
+        if (resolveRes instanceof LPromise) {
+          resolveRes.then(resolve)
+        } else {
+          resolve(res)
+        }
+      }
+      this.cbResolveQueue.push(cbResolve)
+      const cbReject = err => {
+        onReject && onReject(err)
+        reject(err)
+      }
+      this.cbRejectQueue.push(cbReject)
+    })
+  }
+  catch(err) {
+    this.then(undefined, err)
+  }
+  finally(callback) {
+    this.then(callback, callback)
+  }
+  static resolve(res) {
+    return new LPromise(resolve => resolve(res))
+  }
+  static reject(err) {
+    return new LPromise((undefined, reject) => reject(err))
+  }
+  static race(promiseArr) {
+    return new LPromise((resolve, reject) => {
+      let isContinue = true
+      promiseArr.forEach(promise => {
+        promise.then(
+          res => {
+            if (isContinue) {
+              isContinue = false
+              resolve(res)
+            }
+          },
+          err => {
+            if (isContinue) {
+              isContinue = false
+              reject(err)
+            }
+          }
+        )
+      })
+    })
+  }
+  static all(promiseArr) {
+    return new LPromise((resolve, reject) => {
+      const resArr = []
+      const length = promiseArr.length
+      promiseArr.forEach(p => {
+        p.then(
+          res => {
+            resArr.push(res)
+            if (resArr.length === length) {
+              resolve(resArr)
+            }
+          },
+          err => reject(err)
+        )
+      })
+    })
+  }
+  /* new content start */
+  static allSettled(promiseArr) {
+    return new LPromise(resolve => {
+      const resArr = new Array(promiseArr.length)
+      console.log(resArr)
+      let num = 0
+      promiseArr.forEach(p => {
+        let obj = {}
+        p.then(
+          res => {
+            obj.status = 'fulfilled'
+            obj.value = res
+            resArr[num] = obj
+            num++
+            if (num === resArr.length) resolve(resArr)
+          },
+          err => {
+            obj.status = 'rejected'
+            obj.reason = err
+            resArr[num] = obj
+            num++
+            if (num === resArr.length) resolve(resArr)
+          }
+        )
+      })
+    })
+  }
+  /* new content end */
+}
+const p1 = new LPromise((resolve, reject) => setTimeout(() => resolve(1), 200))
+const p2 = new LPromise((resolve, reject) => setTimeout(() => reject(2), 1000))
+const p3 = new LPromise((resolve, reject) => setTimeout(() => reject(3), 3000))
+LPromise.allSettled([p1, p2, p3]).then(
+  res => console.log('res', res),
+  err => console.log('err', err)
+)
+```
