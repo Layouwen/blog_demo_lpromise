@@ -69,10 +69,10 @@
         }
         /* new content end */
         static resolve(res) {
-          return new Promise(resolve => resolve(res))
+          return new LPromise(resolve => resolve(res))
         }
         static reject(err) {
-          return new Promise((undefined, reject) => reject(err))
+          return new LPromise((undefined, reject) => reject(err))
         }
       }
       const p1 = new LPromise((resolve, reject) => reject('我是p1的错误信息'))

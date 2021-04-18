@@ -65,10 +65,10 @@
         }
         /* new content start */
         static resolve(res) {
-          return new Promise(resolve => resolve(res))
+          return new LPromise(resolve => resolve(res))
         }
         static reject(err) {
-          return new Promise((undefined, reject) => reject(err))
+          return new LPromise((undefined, reject) => reject(err))
         }
         /* new content end */
       }
