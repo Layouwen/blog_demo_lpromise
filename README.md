@@ -483,3 +483,82 @@ console.log(p1)
 const p2 = LPromise.reject('失败')
 console.log(p2)
 ```
+
+## 7、实现finally方法
+
+这个与catch类似的实现，只需要保证不管成功还是失败都执行里面的回调。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        cbFn && cbFn(res)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        cbFn && cbFn(err)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    return new LPromise((resolve, reject) => {
+      const cbResolve = res => {
+        const resolveRes = onResolve && onResolve(res)
+        if (resolveRes instanceof LPromise) {
+          resolveRes.then(resolve)
+        } else {
+          resolve(res)
+        }
+      }
+      this.cbResolveQueue.push(cbResolve)
+      const cbReject = err => {
+        onReject && onReject(err)
+        reject(err)
+      }
+      this.cbRejectQueue.push(cbReject)
+    })
+  }
+  catch(err) {
+    this.then(undefined, err)
+  }
+  /* new content start */
+  finally(callback) {
+    this.then(callback, callback)
+  }
+  /* new content end */
+  static resolve(res) {
+    return new Promise(resolve => resolve(res))
+  }
+  static reject(err) {
+    return new Promise((undefined, reject) => reject(err))
+  }
+}
+const p1 = new LPromise((resolve, reject) => reject('我是p1的错误信息'))
+p1.then(
+  res => console.log(res),
+  err => console.log(err)
+).finally(() => console.log('finally'))
+```
