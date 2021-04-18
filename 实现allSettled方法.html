@@ -114,7 +114,6 @@ class LPromise {
   static allSettled(promiseArr) {
     return new LPromise(resolve => {
       const resArr = new Array(promiseArr.length)
-      console.log(resArr)
       let num = 0
       promiseArr.forEach(p => {
         let obj = {}
