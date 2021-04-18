@@ -471,10 +471,10 @@ class LPromise {
   }
   /* new content start */
   static resolve(res) {
-    return new Promise(resolve => resolve(res))
+    return new LPromise(resolve => resolve(res))
   }
   static reject(err) {
-    return new Promise((undefined, reject) => reject(err))
+    return new LPromise((undefined, reject) => reject(err))
   }
   /* new content end */
 }
@@ -484,9 +484,9 @@ const p2 = LPromise.reject('失败')
 console.log(p2)
 ```
 
-## 7、实现finally方法
+## 7、实现 finally 方法
 
-这个与catch类似的实现，只需要保证不管成功还是失败都执行里面的回调。
+这个与 catch 类似的实现，只需要保证不管成功还是失败都执行里面的回调。
 
 ```js
 class LPromise {
@@ -550,10 +550,10 @@ class LPromise {
   }
   /* new content end */
   static resolve(res) {
-    return new Promise(resolve => resolve(res))
+    return new LPromise(resolve => resolve(res))
   }
   static reject(err) {
-    return new Promise((undefined, reject) => reject(err))
+    return new LPromise((undefined, reject) => reject(err))
   }
 }
 const p1 = new LPromise((resolve, reject) => reject('我是p1的错误信息'))
@@ -561,4 +561,106 @@ p1.then(
   res => console.log(res),
   err => console.log(err)
 ).finally(() => console.log('finally'))
+```
+
+## 8、实现 race 方法
+
+**race** 就是返回最先执行成功的结果。不管是成功还是失败。这样我们只需要遍历该 **Promise** ，正常返回数据。谁先执行完成，谁先返回即可。注意要控制状态，防止返回多个结果。 **race** 只需要返回最快的一个结果。
+
+```js
+class LPromise {
+  constructor(callbackFn) {
+    this['[[PromiseState]]'] = 'pending'
+    this['[[PromiseResult]]'] = undefined
+    this.cbResolveQueue = []
+    this.cbRejectQueue = []
+    callbackFn(this.#resolve.bind(this), this.#reject.bind(this))
+  }
+  #resolve(res) {
+    this['[[PromiseState]]'] = 'fulfilled'
+    this['[[PromiseResult]]'] = res
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbResolveQueue.shift())) {
+        cbFn && cbFn(res)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  #reject(err) {
+    this['[[PromiseState]]'] = 'reject'
+    this['[[PromiseResult]]'] = err
+    const run = () => {
+      let cbFn
+      while ((cbFn = this.cbRejectQueue.shift())) {
+        cbFn && cbFn(err)
+      }
+    }
+    const ob = new MutationObserver(run)
+    ob.observe(document.body, { attributes: true })
+    document.body.setAttribute('lpromise', 'layouwen')
+  }
+  then(onResolve, onReject) {
+    return new LPromise((resolve, reject) => {
+      const cbResolve = res => {
+        const resolveRes = onResolve && onResolve(res)
+        if (resolveRes instanceof LPromise) {
+          resolveRes.then(resolve)
+        } else {
+          resolve(res)
+        }
+      }
+      this.cbResolveQueue.push(cbResolve)
+      const cbReject = err => {
+        onReject && onReject(err)
+        reject(err)
+      }
+      this.cbRejectQueue.push(cbReject)
+    })
+  }
+  catch(err) {
+    this.then(undefined, err)
+  }
+  finally(callback) {
+    this.then(callback, callback)
+  }
+  static resolve(res) {
+    return new LPromise(resolve => resolve(res))
+  }
+  static reject(err) {
+    return new LPromise((undefined, reject) => reject(err))
+  }
+  /* new content start */
+  static race(promiseArr) {
+    return new LPromise((resolve, reject) => {
+      let isContinue = true
+      promiseArr.forEach(promise => {
+        promise.then(
+          res => {
+            if (isContinue) {
+              isContinue = false
+              resolve(res)
+            }
+          },
+          err => {
+            if (isContinue) {
+              isContinue = false
+              reject(err)
+            }
+          }
+        )
+      })
+    })
+  }
+  /* new content end */
+}
+const p1 = new LPromise((resolve, reject) => setTimeout(() => resolve(1), 200))
+const p2 = new LPromise((resolve, reject) => setTimeout(() => reject(2), 1000))
+const p3 = new LPromise((resolve, reject) => setTimeout(() => resolve(3), 3000))
+LPromise.race([p1, p2, p3]).then(
+  res => console.log('res', res),
+  err => console.log('err', err)
+)
 ```
